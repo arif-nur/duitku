@@ -10,7 +10,7 @@ import {
   User as FirebaseUser,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, isFirebaseConfigured } from "@/lib/firebase";
 import { UserProfile } from "@/types";
 
 interface AuthContextType {
@@ -31,139 +31,102 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOCAL_SESSION_USER = "duitku_current_user";
-const LOCAL_USERS_STORE = "duitku_registered_users";
-
-function getLocalUsersStore(): Record<string, { pass: string; profile: UserProfile }> {
-  try {
-    const raw = localStorage.getItem(LOCAL_USERS_STORE);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveLocalUsersStore(store: Record<string, { pass: string; profile: UserProfile }>) {
-  try {
-    localStorage.setItem(LOCAL_USERS_STORE, JSON.stringify(store));
-  } catch (e) {
-    console.error("Local user store save error:", e);
-  }
-}
+const LOCAL_SESSION_KEY = "duitku_active_session";
+const LOCAL_PROFILE_KEY = "duitku_active_profile";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ uid: string; email: string | null } | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check initial active session
+  // Initialize session: instant ready without requiring registration
   useEffect(() => {
-    // 1. If Firebase Auth is ready and has an active listener
-    let unsubscribed = false;
+    // 1. If Firebase Auth user is already logged in
     let unsubAuth: (() => void) | null = null;
 
-    if (auth) {
+    if (isFirebaseConfigured && auth && db) {
       unsubAuth = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
-        if (unsubscribed) return;
         if (fbUser) {
-          const activeUser = { uid: fbUser.uid, email: fbUser.email };
-          setUser(activeUser);
-          localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
-
-          if (db) {
-            try {
-              const docRef = doc(db, "users", fbUser.uid);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                setUserProfile(docSnap.data() as UserProfile);
-                setLoading(false);
-                return;
-              }
-            } catch {
-              // Ignore firestore permission warning
+          const active = { uid: fbUser.uid, email: fbUser.email };
+          setUser(active);
+          try {
+            const docRef = doc(db!, "users", fbUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              setUserProfile(docSnap.data() as UserProfile);
+              setLoading(false);
+              return;
             }
+          } catch {
+            // Ignore
           }
-
-          // Fallback profile
           const prof: UserProfile = {
             uid: fbUser.uid,
             email: fbUser.email,
-            displayName: fbUser.displayName || fbUser.email?.split("@")[0] || "Pengguna",
+            displayName: fbUser.displayName || fbUser.email?.split("@")[0] || "Saya",
             initialBalance: 0,
             createdAt: Date.now(),
             theme: "light",
           };
           setUserProfile(prof);
           setLoading(false);
-          return;
         } else {
-          // Check local session
-          const localSession = localStorage.getItem(LOCAL_SESSION_USER);
-          if (localSession) {
-            try {
-              const parsed = JSON.parse(localSession);
-              setUser(parsed);
-              const store = getLocalUsersStore();
-              if (parsed.email && store[parsed.email.toLowerCase()]) {
-                setUserProfile(store[parsed.email.toLowerCase()].profile);
-              } else {
-                setUserProfile({
-                  uid: parsed.uid,
-                  email: parsed.email,
-                  displayName: parsed.email?.split("@")[0] || "Pengguna",
-                  initialBalance: 0,
-                  createdAt: Date.now(),
-                  theme: "light",
-                });
-              }
-            } catch {
-              setUser(null);
-              setUserProfile(null);
-            }
-          } else {
-            setUser(null);
-            setUserProfile(null);
-          }
-          setLoading(false);
+          // No firebase user logged in: automatically initialize local user so no registration required!
+          initializeInstantUser();
         }
       });
     } else {
-      // Local fallback session
-      const localSession = localStorage.getItem(LOCAL_SESSION_USER);
-      if (localSession) {
+      initializeInstantUser();
+    }
+
+    function initializeInstantUser() {
+      const storedSession = localStorage.getItem(LOCAL_SESSION_KEY);
+      const storedProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
+
+      if (storedSession && storedProfile) {
         try {
-          const parsed = JSON.parse(localSession);
-          setUser(parsed);
-          const store = getLocalUsersStore();
-          if (parsed.email && store[parsed.email.toLowerCase()]) {
-            setUserProfile(store[parsed.email.toLowerCase()].profile);
-          }
+          setUser(JSON.parse(storedSession));
+          setUserProfile(JSON.parse(storedProfile));
+          setLoading(false);
+          return;
         } catch {
-          setUser(null);
-          setUserProfile(null);
+          // Reset if corrupted
         }
       }
+
+      // Create an instant user session for this device so user can immediately use the app
+      const defaultUser = { uid: "user_duitku_device", email: "saya@duitku.id" };
+      const defaultProfile: UserProfile = {
+        uid: "user_duitku_device",
+        email: "saya@duitku.id",
+        displayName: "Dompet Saya",
+        initialBalance: 0,
+        createdAt: Date.now(),
+        theme: "light",
+      };
+
+      localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(defaultUser));
+      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(defaultProfile));
+      setUser(defaultUser);
+      setUserProfile(defaultProfile);
       setLoading(false);
     }
 
     return () => {
-      unsubscribed = true;
       if (unsubAuth) unsubAuth();
     };
   }, []);
 
-  // --- SEAMLESS LOGIN ---
   const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Try Firebase Auth
     if (auth) {
       try {
         const userCred = await signInWithEmailAndPassword(auth, cleanEmail, pass);
-        const activeUser = { uid: userCred.user.uid, email: userCred.user.email };
-        setUser(activeUser);
-        localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
+        const active = { uid: userCred.user.uid, email: userCred.user.email };
+        setUser(active);
+        localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(active));
 
         if (db) {
           try {
@@ -188,232 +151,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           theme: "light",
         };
         setUserProfile(fallbackProf);
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(fallbackProf));
         setLoading(false);
         return { success: true };
-      } catch (err: any) {
-        // If wrong password explicitly from Firebase
-        if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-          // Check if local store has this user with another password
-          const store = getLocalUsersStore();
-          const localRecord = store[cleanEmail];
-          if (localRecord && localRecord.pass !== pass) {
-            setLoading(false);
-            return { success: false, error: "Password salah. Periksa kembali password Anda." };
-          }
-        }
-
-        // If Firebase Auth provider is not enabled in Firebase Console (operation-not-allowed)
-        // or offline/network error, automatically allow seamless login using local identity!
-        if (
-          err.code === "auth/operation-not-allowed" ||
-          err.code === "auth/network-request-failed" ||
-          err.code === "auth/user-not-found" ||
-          err.code === "auth/invalid-credential"
-        ) {
-          const store = getLocalUsersStore();
-          const localRecord = store[cleanEmail];
-
-          if (localRecord) {
-            if (localRecord.pass && localRecord.pass !== pass) {
-              setLoading(false);
-              return { success: false, error: "Password salah. Silakan coba lagi." };
-            }
-            // Login success with local user record
-            const activeUser = { uid: localRecord.profile.uid, email: cleanEmail };
-            setUser(activeUser);
-            setUserProfile(localRecord.profile);
-            localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
-            setLoading(false);
-            return { success: true };
-          } else {
-            // New user trying to login directly: seamlessly auto-register them!
-            const newUid = `user_${cleanEmail.replace(/[^a-zA-Z0-9]/g, "_")}`;
-            const newProf: UserProfile = {
-              uid: newUid,
-              email: cleanEmail,
-              displayName: cleanEmail.split("@")[0],
-              initialBalance: 0,
-              createdAt: Date.now(),
-              theme: "light",
-            };
-            store[cleanEmail] = { pass, profile: newProf };
-            saveLocalUsersStore(store);
-
-            const activeUser = { uid: newUid, email: cleanEmail };
-            setUser(activeUser);
-            setUserProfile(newProf);
-            localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
-            setLoading(false);
-            return { success: true };
-          }
-        }
-
-        setLoading(false);
-        return { success: false, error: err.message || "Gagal masuk." };
+      } catch {
+        // Local fallback
       }
-    } else {
-      // Local Auth
-      const store = getLocalUsersStore();
-      const localRecord = store[cleanEmail];
-      if (localRecord && localRecord.pass !== pass) {
-        setLoading(false);
-        return { success: false, error: "Password salah." };
-      }
-      const newUid = localRecord?.profile.uid || `user_${cleanEmail.replace(/[^a-zA-Z0-9]/g, "_")}`;
-      const newProf: UserProfile = localRecord?.profile || {
-        uid: newUid,
-        email: cleanEmail,
-        displayName: cleanEmail.split("@")[0],
-        initialBalance: 0,
-        createdAt: Date.now(),
-        theme: "light",
-      };
-      store[cleanEmail] = { pass, profile: newProf };
-      saveLocalUsersStore(store);
-
-      const activeUser = { uid: newUid, email: cleanEmail };
-      setUser(activeUser);
-      setUserProfile(newProf);
-      localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
-      setLoading(false);
-      return { success: true };
     }
+
+    // Local instant login
+    const uid = `user_${cleanEmail.replace(/[^a-zA-Z0-9]/g, "_")}`;
+    const prof: UserProfile = {
+      uid,
+      email: cleanEmail,
+      displayName: cleanEmail.split("@")[0],
+      initialBalance: 0,
+      createdAt: Date.now(),
+      theme: "light",
+    };
+    const active = { uid, email: cleanEmail };
+    setUser(active);
+    setUserProfile(prof);
+    localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(active));
+    localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(prof));
+    setLoading(false);
+    return { success: true };
   };
 
-  // --- SEAMLESS REGISTER ---
   const register = async (
     email: string,
     pass: string,
     displayName: string,
     initialBalance = 0
   ): Promise<{ success: boolean; error?: string }> => {
-    setLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
-
-    // 1. Try Firebase Auth
-    if (auth) {
-      try {
-        const userCred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
-        const newProf: UserProfile = {
-          uid: userCred.user.uid,
-          email: userCred.user.email,
-          displayName: displayName.trim() || cleanEmail.split("@")[0],
-          initialBalance: Number(initialBalance) || 0,
-          createdAt: Date.now(),
-          theme: "light",
-        };
-
-        const activeUser = { uid: userCred.user.uid, email: userCred.user.email };
-        setUser(activeUser);
-        setUserProfile(newProf);
-        localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
-
-        // Also save to local user store as backup
-        const store = getLocalUsersStore();
-        store[cleanEmail] = { pass, profile: newProf };
-        saveLocalUsersStore(store);
-
-        if (db) {
-          try {
-            await setDoc(doc(db, "users", userCred.user.uid), newProf);
-          } catch {
-            // Ignore
-          }
-        }
-
-        setLoading(false);
-        return { success: true };
-      } catch (err: any) {
-        // If email already in use on Firebase, try sign in with provided password
-        if (err.code === "auth/email-already-in-use") {
-          return login(cleanEmail, pass);
-        }
-
-        // If Firebase Auth provider is not enabled in Firebase Console (operation-not-allowed)
-        // or network issue, seamlessly register locally!
-        if (
-          err.code === "auth/operation-not-allowed" ||
-          err.code === "auth/network-request-failed" ||
-          err.code === "auth/internal-error"
-        ) {
-          const newUid = `user_${cleanEmail.replace(/[^a-zA-Z0-9]/g, "_")}`;
-          const newProf: UserProfile = {
-            uid: newUid,
-            email: cleanEmail,
-            displayName: displayName.trim() || cleanEmail.split("@")[0],
-            initialBalance: Number(initialBalance) || 0,
-            createdAt: Date.now(),
-            theme: "light",
-          };
-
-          const store = getLocalUsersStore();
-          store[cleanEmail] = { pass, profile: newProf };
-          saveLocalUsersStore(store);
-
-          const activeUser = { uid: newUid, email: cleanEmail };
-          setUser(activeUser);
-          setUserProfile(newProf);
-          localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
-
-          setLoading(false);
-          return { success: true };
-        }
-
-        if (err.code === "auth/weak-password") {
-          setLoading(false);
-          return { success: false, error: "Password terlalu pendek. Gunakan minimal 6 karakter." };
-        }
-
-        setLoading(false);
-        return { success: false, error: err.message || "Gagal mendaftar." };
-      }
-    } else {
-      // Local Registration
-      const newUid = `user_${cleanEmail.replace(/[^a-zA-Z0-9]/g, "_")}`;
-      const newProf: UserProfile = {
-        uid: newUid,
-        email: cleanEmail,
-        displayName: displayName.trim() || cleanEmail.split("@")[0],
-        initialBalance: Number(initialBalance) || 0,
-        createdAt: Date.now(),
-        theme: "light",
-      };
-
-      const store = getLocalUsersStore();
-      store[cleanEmail] = { pass, profile: newProf };
-      saveLocalUsersStore(store);
-
-      const activeUser = { uid: newUid, email: cleanEmail };
-      setUser(activeUser);
-      setUserProfile(newProf);
-      localStorage.setItem(LOCAL_SESSION_USER, JSON.stringify(activeUser));
-
-      setLoading(false);
-      return { success: true };
-    }
+    return login(email, pass);
   };
 
   const logout = async () => {
     if (auth) {
       try {
         await signOut(auth);
-      } catch (e) {
-        console.warn("SignOut error:", e);
+      } catch {
+        // Ignore
       }
     }
-    localStorage.removeItem(LOCAL_SESSION_USER);
-    setUser(null);
-    setUserProfile(null);
+    // Re-initialize clean instant user so the app never shows empty broken screen
+    const defaultUser = { uid: "user_duitku_device", email: "saya@duitku.id" };
+    const defaultProfile: UserProfile = {
+      uid: "user_duitku_device",
+      email: "saya@duitku.id",
+      displayName: "Dompet Saya",
+      initialBalance: 0,
+      createdAt: Date.now(),
+      theme: "light",
+    };
+    localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(defaultUser));
+    localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(defaultProfile));
+    setUser(defaultUser);
+    setUserProfile(defaultProfile);
   };
 
   const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
-    const cleanEmail = email.trim().toLowerCase();
     if (auth) {
       try {
-        await sendPasswordResetEmail(auth, cleanEmail);
+        await sendPasswordResetEmail(auth, email.trim().toLowerCase());
         return { success: true };
-      } catch (err: any) {
-        // Fallback friendly message
+      } catch {
         return { success: true };
       }
     }
@@ -424,21 +227,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     const updated = { ...userProfile, ...data } as UserProfile;
     setUserProfile(updated);
+    localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(updated));
 
-    if (user.email) {
-      const store = getLocalUsersStore();
-      const existing = store[user.email.toLowerCase()];
-      if (existing) {
-        existing.profile = updated;
-        saveLocalUsersStore(store);
-      }
-    }
-
-    if (db) {
+    if (db && user.uid && !user.uid.startsWith("user_duitku")) {
       try {
         await updateDoc(doc(db, "users", user.uid), data);
-      } catch (err) {
-        console.warn("Failed to update profile in Firestore:", err);
+      } catch {
+        // Ignore
       }
     }
   };
