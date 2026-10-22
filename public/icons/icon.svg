@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="50%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#064e3b" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="128" fill="url(#grad)" />
+  
+  <!-- Outer Glow Ring -->
+  <circle cx="256" cy="256" r="160" stroke="#ffffff" stroke-opacity="0.15" stroke-width="12" fill="none" />
+  
+  <!-- Wallet / Shield Outline -->
+  <g filter="url(#shadow)" fill="#ffffff">
+    <!-- Wallet body -->
+    <path d="M140 180 C140 160 156 144 176 144 L336 144 C356 144 372 160 372 180 L372 332 C372 352 356 368 336 368 L176 368 C156 368 140 352 140 332 Z" fill="#ffffff" fill-opacity="0.95" />
+    <!-- Wallet Flap -->
+    <path d="M140 180 C140 160 156 144 176 144 L336 144 C356 144 372 160 372 180 L372 230 C372 250 356 266 336 266 L176 266 C156 266 140 250 140 230 Z" fill="#ecfdf5" />
+    <!-- Coin clasp -->
+    <circle cx="316" cy="256" r="28" fill="#059669" />
+    <circle cx="316" cy="256" r="12" fill="#34d399" />
+  </g>
+</svg>

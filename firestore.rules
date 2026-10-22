@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to verify document owner
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Match user root document
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // Transactions subcollection
+      match /transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) 
+          && request.resource.data.amount is number 
+          && request.resource.data.amount > 0
+          && (request.resource.data.type == 'income' || request.resource.data.type == 'expense')
+          && request.resource.data.date is string;
+        allow delete: if isOwner(userId);
+      }
+
+      // Savings Goals subcollection
+      match /savingsGoals/{goalId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.targetAmount is number
+          && request.resource.data.targetAmount > 0
+          && request.resource.data.currentAmount is number
+          && request.resource.data.currentAmount >= 0;
+        allow delete: if isOwner(userId);
+      }
+
+      // Savings Movements (deposits and withdrawals)
+      match /savingsMovements/{movementId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.amount is number
+          && request.resource.data.amount > 0
+          && (request.resource.data.type == 'deposit' || request.resource.data.type == 'withdraw');
+        allow update, delete: if isOwner(userId);
+      }
+
+      // Budgets subcollection
+      match /budgets/{budgetId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.totalBudget is number
+          && request.resource.data.totalBudget >= 0;
+        allow delete: if isOwner(userId);
+      }
+
+      // User Settings & Preferences
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}
