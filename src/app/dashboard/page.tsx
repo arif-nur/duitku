@@ -79,7 +79,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Halo, {userProfile?.displayName || "Sobat DuitKu"}! 👋
+              Halo, {userProfile?.displayName || "Sobat CuanKu"}! 👋
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">

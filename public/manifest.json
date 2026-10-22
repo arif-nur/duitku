@@ -1,6 +1,6 @@
 {
-  "name": "DuitKu — Catatan Keuangan Pribadi",
-  "short_name": "DuitKu",
+  "name": "CuanKu — Catatan Keuangan Pribadi",
+  "short_name": "CuanKu",
   "description": "Aplikasi PWA pencatatan keuangan pribadi, kelola pemasukan, pengeluaran, tabungan, dan anggaran.",
   "start_url": "/dashboard",
   "display": "standalone",

@@ -1,4 +1,4 @@
-const CACHE_NAME = "duitku-cache-v1";
+const CACHE_NAME = "cuanku-cache-v1";
 const STATIC_ASSETS = [
   "/",
   "/dashboard",

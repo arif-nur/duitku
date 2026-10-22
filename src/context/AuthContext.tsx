@@ -95,10 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Create an instant user session for this device so user can immediately use the app
-      const defaultUser = { uid: "user_duitku_device", email: "saya@duitku.id" };
+      const defaultUser = { uid: "user_duitku_device", email: "saya@cuanku.id" };
       const defaultProfile: UserProfile = {
         uid: "user_duitku_device",
-        email: "saya@duitku.id",
+        email: "saya@cuanku.id",
         displayName: "Dompet Saya",
         initialBalance: 0,
         createdAt: Date.now(),
@@ -196,10 +196,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     // Re-initialize clean instant user so the app never shows empty broken screen
-    const defaultUser = { uid: "user_duitku_device", email: "saya@duitku.id" };
+    const defaultUser = { uid: "user_duitku_device", email: "saya@cuanku.id" };
     const defaultProfile: UserProfile = {
       uid: "user_duitku_device",
-      email: "saya@duitku.id",
+      email: "saya@cuanku.id",
       displayName: "Dompet Saya",
       initialBalance: 0,
       createdAt: Date.now(),

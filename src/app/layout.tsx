@@ -18,14 +18,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DuitKu — PWA Catatan Keuangan Pribadi",
+  title: "CuanKu — PWA Catatan Keuangan Pribadi",
   description:
     "Aplikasi pencatatan keuangan pribadi modern untuk mengelola pemasukan, pengeluaran harian, saldo otomatis, tabungan impian, dan anggaran bulanan.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "DuitKu",
+    title: "CuanKu",
   },
   icons: {
     icon: "/favicon.ico",

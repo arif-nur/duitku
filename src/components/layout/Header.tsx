@@ -56,7 +56,7 @@ export function Header({ title }: { title?: string }) {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-sm">
             <Wallet className="w-4 h-4" />
           </div>
-          <span className="font-bold text-slate-900 dark:text-white text-base">DuitKu</span>
+          <span className="font-bold text-slate-900 dark:text-white text-base">CuanKu</span>
         </div>
         {title && (
           <h2 className="hidden md:block text-xl font-bold text-slate-800 dark:text-slate-100">

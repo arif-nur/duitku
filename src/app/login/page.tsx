@@ -49,7 +49,7 @@ export default function LoginPage() {
             <Wallet className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Masuk ke DuitKu
+            Masuk ke CuanKu
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Kelola keuangan pribadi Anda dengan mudah dan aman

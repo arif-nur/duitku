@@ -9,10 +9,10 @@ export function PWARegister() {
         navigator.serviceWorker
           .register("/sw.js")
           .then((reg) => {
-            console.log("DuitKu PWA Service Worker terdaftar:", reg.scope);
+            console.log("CuanKu PWA Service Worker terdaftar:", reg.scope);
           })
           .catch((err) => {
-            console.warn("DuitKu PWA Service Worker registrasi gagal:", err);
+            console.warn("CuanKu PWA Service Worker registrasi gagal:", err);
           });
       });
     }

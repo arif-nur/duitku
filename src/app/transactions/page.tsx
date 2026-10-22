@@ -102,7 +102,7 @@ export default function TransactionsPage() {
       Metode: tx.paymentMethod,
       Catatan: tx.note || "",
     }));
-    exportToCSV(`Seluruh_Transaksi_DuitKu_${Date.now()}.csv`, rows);
+    exportToCSV(`Seluruh_Transaksi_CuanKu_${Date.now()}.csv`, rows);
     showSuccess("Laporan transaksi berhasil diekspor ke format CSV!");
   };
 

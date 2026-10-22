@@ -97,7 +97,7 @@ export default function SettingsPage() {
               <input
                 type="email"
                 disabled
-                value={userProfile?.email || "demo@duitku.id"}
+                value={userProfile?.email || "saya@cuanku.id"}
                 className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed"
               />
             </div>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
       <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">Keluar dari Akun</h3>
-          <p className="text-xs text-slate-400">Akhiri sesi penggunaan aplikasi DuitKu ini.</p>
+          <p className="text-xs text-slate-400">Akhiri sesi penggunaan aplikasi CuanKu ini.</p>
         </div>
         <button
           onClick={() => logout()}

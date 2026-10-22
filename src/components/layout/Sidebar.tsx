@@ -44,7 +44,7 @@ export function Sidebar() {
         </div>
         <div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-            DuitKu
+            CuanKu
           </h1>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             Catatan Keuangan Pribadi
@@ -96,7 +96,7 @@ export function Sidebar() {
                 {userProfile?.displayName || "Pengguna"}
               </p>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                {userProfile?.email || "demo@duitku.id"}
+                {userProfile?.email || "saya@cuanku.id"}
               </p>
             </div>
           </div>

@@ -19,7 +19,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
         <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
         <p className="mt-4 text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400">
-          Membuka DuitKu...
+          Membuka CuanKu...
         </p>
       </div>
     );

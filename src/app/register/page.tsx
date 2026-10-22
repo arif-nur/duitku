@@ -58,7 +58,7 @@ export default function RegisterPage() {
             <Wallet className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Buat Akun DuitKu
+            Buat Akun CuanKu
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Daftar dalam hitungan detik untuk mulai mencatat keuangan
