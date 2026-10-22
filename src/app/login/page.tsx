@@ -3,35 +3,27 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Wallet,
-  Mail,
-  Lock,
-  LogIn,
-  AlertCircle,
-  Sparkles,
-  ExternalLink,
-} from "lucide-react";
+import { Wallet, Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loginDemo, resetPassword, isFirebaseActive } = useAuth();
+  const { login } = useAuth();
   const { showSuccess, showError } = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resetting, setResetting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
+    setErrorMsg(null);
 
-    if (!email || !password) {
-      showError("Email dan password wajib diisi!");
+    if (!email.trim() || !password) {
+      showError("Harap masukkan email dan password Anda.");
       return;
     }
 
@@ -40,39 +32,18 @@ export default function LoginPage() {
     setLoading(false);
 
     if (res.success) {
-      showSuccess("Selamat datang kembali di DuitKu!");
+      showSuccess("Selamat datang kembali!");
       router.push("/dashboard");
     } else {
-      setErrorMessage(res.error || "Gagal masuk ke akun.");
+      setErrorMsg(res.error || "Gagal masuk.");
       showError(res.error || "Gagal masuk.");
     }
-  };
-
-  const handleResetPassword = async () => {
-    if (!email) {
-      showError("Masukkan email Anda terlebih dahulu pada kolom email.");
-      return;
-    }
-    setResetting(true);
-    const res = await resetPassword(email);
-    setResetting(false);
-    if (res.success) {
-      showSuccess("Instruksi reset password telah dikirim ke email Anda!");
-    } else {
-      showError(res.error || "Gagal memproses reset password.");
-    }
-  };
-
-  const handleDemoBypass = () => {
-    loginDemo(email || "arief@gmail.com", "Arief");
-    showSuccess("Masuk dengan Mode Demo Lokal! Anda dapat langsung menggunakan semua fitur.");
-    router.push("/dashboard");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
-        {/* Brand Logo & Title */}
+        {/* Brand Logo & Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
             <Wallet className="w-7 h-7" />
@@ -81,30 +52,14 @@ export default function LoginPage() {
             Masuk ke DuitKu
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Aplikasi PWA Catatan Keuangan Pribadi Modern
+            Kelola keuangan pribadi Anda dengan mudah dan aman
           </p>
         </div>
 
-        {/* Error Alert Box */}
-        {errorMessage && (
-          <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs space-y-2">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <div className="font-medium leading-relaxed">{errorMessage}</div>
-            </div>
-            {errorMessage.includes("Firebase Console") && (
-              <div className="pt-2 border-t border-rose-200 dark:border-rose-900">
-                <a
-                  href="https://console.firebase.google.com/project/dompet-my/authentication/providers"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-bold underline flex items-center gap-1 hover:text-rose-900"
-                >
-                  Buka Pengaturan Authentication Firebase
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            )}
+        {/* Error Alert */}
+        {errorMsg && (
+          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-medium">
+            {errorMsg}
           </div>
         )}
 
@@ -131,25 +86,25 @@ export default function LoginPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Password
               </label>
-              <button
-                type="button"
-                onClick={handleResetPassword}
-                disabled={resetting}
-                className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
-              >
-                {resetting ? "Mengirim..." : "Lupa password?"}
-              </button>
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full pl-11 pr-11 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -161,29 +116,17 @@ export default function LoginPage() {
             }`}
           >
             <LogIn className="w-4 h-4" />
-            <span>{loading ? "Memproses..." : "Masuk ke Akun"}</span>
+            <span>{loading ? "Memproses..." : "Masuk"}</span>
           </button>
         </form>
 
-        {/* Demo Bypass */}
-        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-center space-y-2">
-          <button
-            type="button"
-            onClick={handleDemoBypass}
-            className="w-full py-2.5 px-4 rounded-2xl border border-dashed border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold text-xs hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors flex items-center justify-center gap-2"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-500" />
-            <span>Masuk Langsung (Mode Demo Cepat)</span>
-          </button>
-        </div>
-
-        <div className="text-center text-xs text-slate-500">
+        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
           Belum punya akun?{" "}
           <Link
             href="/register"
             className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
           >
-            Daftar Akun Baru
+            Daftar di sini
           </Link>
         </div>
       </div>

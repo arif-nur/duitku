@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { usePathname } from "next/navigation";
+import React, { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { Header } from "./Header";
@@ -12,9 +12,16 @@ const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password"];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, loading } = useAuth();
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+
+  useEffect(() => {
+    if (!loading && !user && !isPublicRoute) {
+      router.push("/login");
+    }
+  }, [user, loading, isPublicRoute, router]);
 
   if (loading) {
     return (
@@ -33,6 +40,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
         {children}
       </main>
+    );
+  }
+
+  // If not logged in and not public, show spinner while redirecting
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
+        <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
+        <p className="mt-4 text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400">
+          Mengarahkan ke halaman login...
+        </p>
+      </div>
     );
   }
 

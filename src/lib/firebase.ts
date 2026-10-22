@@ -3,15 +3,14 @@ import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyA8vYbWjKkk4LAsdmDFsY5blA4_cOGm-7Q",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "dompet-my.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "dompet-my",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "dompet-my.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "448416604",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:448416604:web:c94a11e6a591c078024f99",
 };
 
-// Check if Firebase config is provided and valid (not empty and not dummy placeholder)
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey &&
   firebaseConfig.projectId &&
@@ -30,7 +29,7 @@ if (typeof window !== "undefined") {
       auth = getAuth(app);
       db = getFirestore(app);
     } catch (error) {
-      console.warn("Firebase initialization error, fallback to local mode:", error);
+      console.error("Firebase initialization error:", error);
     }
   }
 }
