@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Sun, Moon, Wifi, WifiOff, History, Settings, Wallet } from "lucide-react";
+import { Sun, Moon, Wifi, WifiOff, History, Settings, Wallet, LogIn, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function Header({ title }: { title?: string }) {
@@ -115,6 +115,27 @@ export function Header({ title }: { title?: string }) {
         >
           <Settings className="w-4 h-4" />
         </Link>
+
+        {/* Login / Profile Navigation Button */}
+        {userProfile?.email && userProfile.email !== "saya@cuanku.id" ? (
+          <Link
+            href="/settings"
+            title={`Masuk sebagai ${userProfile.displayName || userProfile.email}`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold hover:bg-emerald-100 transition-colors"
+          >
+            <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span className="max-w-[70px] sm:max-w-[120px] truncate">{userProfile.displayName || "Akun"}</span>
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            title="Masuk ke Akun CuanKu"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Masuk</span>
+          </Link>
+        )}
       </div>
     </header>
   );

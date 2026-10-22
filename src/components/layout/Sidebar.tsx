@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  LogIn,
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -84,8 +85,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User info & Logout */}
-      <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+      {/* User info & Login Navigation */}
+      <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
         <div className="flex items-center justify-between gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-semibold flex items-center justify-center text-xs shrink-0">
@@ -108,6 +109,25 @@ export function Sidebar() {
             <LogOut className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Navigation to Login/Register */}
+        {userProfile?.email && userProfile.email !== "saya@cuanku.id" ? (
+          <Link
+            href="/login"
+            className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors"
+          >
+            <LogIn className="w-3.5 h-3.5 text-slate-500" />
+            <span>Ganti Akun</span>
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Masuk / Sinkron Akun</span>
+          </Link>
+        )}
       </div>
     </aside>
   );

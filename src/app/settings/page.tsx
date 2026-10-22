@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Settings,
   User,
@@ -9,6 +10,7 @@ import {
   Moon,
   Sun,
   LogOut,
+  LogIn,
   Save,
   Database,
   ExternalLink,
@@ -18,9 +20,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useFinance } from "@/context/FinanceContext";
 import { useToast } from "@/context/ToastContext";
 import { formatRupiah } from "@/lib/utils";
+import { isFirebaseConfigured } from "@/lib/firebase";
 
 export default function SettingsPage() {
-  const { userProfile, updateUserProfile, logout, isFirebaseActive } = useAuth();
+  const { userProfile, updateUserProfile, logout } = useAuth();
+  const isFirebaseActive = isFirebaseConfigured;
   const { initialBalance } = useFinance();
   const { showSuccess, showError } = useToast();
 
@@ -137,6 +141,37 @@ export default function SettingsPage() {
           </div>
         </div>
       </form>
+
+      {/* Account & Login System Navigation */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <LogIn className="w-5 h-5 text-emerald-600" />
+              Sistem Akun & Autentikasi
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+              {userProfile?.email && userProfile.email !== "saya@cuanku.id"
+                ? `Akun Anda saat ini terhubung dengan email ${userProfile.email}. Anda dapat berganti akun kapan saja.`
+                : "Saat ini Anda menggunakan akun perangkat lokal tanpa login. Masuk atau buat akun baru untuk menyimpan data Anda ke Cloud Firebase dan akses di perangkat lain."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/login"
+              className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 active:scale-95 transition-all text-center"
+            >
+              {userProfile?.email && userProfile.email !== "saya@cuanku.id" ? "Ganti Akun" : "Masuk ke Akun"}
+            </Link>
+            <Link
+              href="/register"
+              className="px-5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs active:scale-95 transition-all text-center"
+            >
+              Daftar Baru
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* Database Connection Status Card */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
